@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Mô phỏng các thuật toán lập lịch đĩa</title>
+    <style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0;
+}
+
+.container {
+    width: 80%;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #fff;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+input[type="text"], input[type="number"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    box-sizing: border-box;
+    border-radius: 5px;
+    border: none;
+    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+}
+
+button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    color: #fff;
+    background-color: #007BFF;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color .3s ease-in-out, transform .3s ease-in-out;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+button:focus {
+    transform: scale(1.02);
+}
+
+/* Thêm một số hiệu ứng gradient và chuyển đổi cho nút */
+button {
+    background-image: linear-gradient(to right, #007BFF, #00C6FF);
+}
+
+button:hover {
+    background-position: right center;
+}
+
+/* Thêm một số hiệu ứng cho trường nhập liệu */
+input[type="text"], input[type="number"] {
+    outline: none;
+    box-shadow: none;
+}
+
+input[type="text"]:focus, input[type="number"]:focus {
+    box-shadow: 0px 0px 5px rgba(33,150,243,1); /* đổi màu */
+}
+
+    </style>
+    <script type="text/javascript">
+        function calculateMovement(requests, head) {
+            var movement = 0;
+            var process = "";
+            for (var i = 0; i < requests.length; i++) {
+                movement += Math.abs(requests[i] - head);
+                process += "Đầu đọc di chuyển từ " + head + " đến " + requests[i] + "\n";
+                head = requests[i];
+            }
+            return {movement: movement, process: process};
+        }
+
+        function runAlgorithm(algorithm) {
+            var requestString = document.getElementById('requests').value;
+            var requestArray = requestString.split(' ').map(Number);
+            
+            var headPosition = Number(document.getElementById('headPosition').value);
+            
+            switch (algorithm) {
+                case 'FCFS':
+                    var result = calculateMovement(requestArray.slice(), headPosition);
+                    alert("FCFS - Quá trình di chuyển:\n" + result.process);
+                    alert("FCFS - Tổng số di chuyển: " + result.movement);
+                    break;
+
+                case 'SSTF':
+                    var requests = requestArray.slice();
+                    var head = headPosition;
+                    var sortedRequests = [];
+
+                    while (requests.length != 0) {
+                        requests.sort(function(a, b) { return Math.abs(a - head) - Math.abs(b - head); });
+                        sortedRequests.push(requests.shift());
+                    }
+
+                    var result = calculateMovement(sortedRequests, head);
+                    alert("SSTF - Quá trình di chuyển:\n" + result.process);
+                    alert("SSTF - Tổng số di chuyển: " + result.movement);
+                    break;
+
+                case 'SCAN-Up':
+                    var requests = requestArray.slice();
+                    requests.push(0); // Thêm biên dưới
+                    requests.sort(function(a, b){return a - b});
+
+                    var result = calculateMovement(requests.slice(requests.indexOf(headPosition)), headPosition);
+                    alert("SCAN-Up - Quá trình di chuyển:\n" + result.process);
+                    alert("SCAN-Up - Tổng số di chuyển: " + result.movement);
+                    break;
+
+                case 'SCAN-Down':
+                    var requests = requestArray.slice();
+                    requests.push(199); // Thêm biên trên
+                    requests.sort(function(a, b){return b - a});
+
+                    var result = calculateMovement(requests.slice(requests.indexOf(headPosition)), headPosition);
+                    alert("SCAN-Down - Quá trình di chuyển:\n" + result.process);
+                    alert("SCAN-Down - Tổng số di chuyển: " + result.movement);
+                    break;
+
+                case 'C-SCAN Up':
+                    var requests = requestArray.slice();
+                    requests.push(0); // Thêm biên dưới
+                    requests.sort(function(a, b){return a - b});
+
+                    var upperHalf = requests.slice(requests.indexOf(headPosition));
+                    var lowerHalf = requests.slice(0, requests.indexOf(headPosition));
+                    
+                    upperHalf.push.apply(upperHalf, lowerHalf);
+
+                    var result = calculateMovement(upperHalf, headPosition);
+                    alert("C-SCAN Up - Quá trình di chuyển:\n" + result.process);
+                    alert("C-SCAN Up - Tổng số di chuyển: " + result.movement);
+                    break;
+
+                case 'C-SCAN Down':
+                    var requests = requestArray.slice();
+                    requests.push(199); // Thêm biên trên
+                    requests.sort(function(a, b){return b - a});
+
+                    var upperHalf = requests.slice(0, requests.indexOf(headPosition) + 1);
+                    var lowerHalf = requests.slice(requests.indexOf(headPosition) + 1);
+
+                    lowerHalf.push.apply(lowerHalf, upperHalf);
+
+                    var result = calculateMovement(lowerHalf, headPosition);
+                    alert("C-SCAN Down - Quá trình di chuyển:\n" + result.process);
+                    alert("C-SCAN Down - Tổng số di chuyển: " + result.movement);
+                    break;
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <label for="requests">Nhập các yêu cầu (phân tách bằng dấu cách):</label><br/>
+        <input type="text" id="requests" name="requests"><br/>
+        <label for="headPosition">Nhập vị trí ban đầu của đầu đọc:</label><br/>
+        <input type="number" id="headPosition" name="headPosition" min="0" max="199" value="53"><br/>
+        <button onclick="runAlgorithm('FCFS')">Chạy thuật toán FCFS</button><br/>
+        <button onclick="runAlgorithm('SSTF')">Chạy thuật toán SSTF</button><br/>
+        <button onclick="runAlgorithm('SCAN-Up')">Chạy thuật toán SCAN-Up</button><br/>
+        <button onclick="runAlgorithm('SCAN-Down')">Chạy thuật toán SCAN-Down</button><br/>
+        <button onclick="runAlgorithm('C-SCAN Up')">Chạy thuật toán C-SCAN Up</button><br/>
+        <button onclick="runAlgorithm('C-SCAN Down')">Chạy thuật toán C-SCAN Down</button><br/>
+    </div>
+</body>
+</html>
